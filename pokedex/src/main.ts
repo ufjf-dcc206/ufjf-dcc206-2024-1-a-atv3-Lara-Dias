@@ -1,16 +1,23 @@
-import './style.css'
-//importar imagem import viteLogo from '/vite.svg'
-import { setupPokemon } from './pokemoncard.ts'
+import './style.css';
+import './pokemonArea.ts';
+import './pokemonCard.ts'
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <div class="card">
-      <button id="pokemon" type="button">Descobrir Pokémon</button>
-    </div>
-    <p class="instrucao">
-      Clique no botão e descubra seu pokémon. 
-    </p>
-  </div>
-`
+async function iniciar() {
+  const jogadorAarea=document.createElement('pokemon-area') as any;
+  jogadorAarea.setPokemon(5);
 
-setupPokemon(document.querySelector<HTMLButtonElement>('#pokemon')!)
+  const emptyArea = document.createElement('div');
+  emptyArea.classList.add('empty-area');
+  emptyArea.innerText = 'Área de jogo vazia';
+
+  const jogadorBarea = document.createElement('pokemon-area') as any;
+  jogadorBarea.setPokemon(5);
+
+  const app = document.getElementById('app')!;
+  app.innerHTML='';
+  app.appendChild(jogadorAarea);
+  app.appendChild(emptyArea);
+  app.appendChild(jogadorBarea);
+}
+
+iniciar();
