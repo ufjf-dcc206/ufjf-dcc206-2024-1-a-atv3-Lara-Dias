@@ -19,26 +19,26 @@ class PokemonCard extends HTMLElement {
 
       const card = this.shadowRoot!.querySelector('.pokemon-card');
       if (card) {
-        card.addEventListener('click', this.selecaoPokemon.bind(this));
-        console.log("Ouvinte de clique registrado para:", nome); // Log aqui
+        card.addEventListener('click', this.selecaoPokemon.bind(this) as EventListener);
+        console.log("Ouvinte de clique registrado para:", nome);
       } else {
-        console.log("Elemento .pokemon-card não encontrado!"); // Log de erro
+        console.log("Elemento .pokemon-card não encontrado!");
       }
     }
-    
-    selecaoPokemon(){
-      console.log("Selecionado Pokémon:", this.getAttribute('nome'));
+
+    selecaoPokemon() {
       const event = new CustomEvent('pokemonSelecionado', {
-        detail:{
-          nome:this.getAttribute('nome'),
-          imagem:this.getAttribute('imagem'),
-          tipos:this.getAttribute('tipos'),
+        detail: {
+          nome: this.getAttribute('nome'),
+          imagem: this.getAttribute('imagem'),
+          tipos: this.getAttribute('tipos'),
         },
         bubbles: true,
         composed: true
       });
+      console.log('Evento disparado:', event.detail); 
       this.dispatchEvent(event);
-    }
+   }
 }
   
 customElements.define('pokemon-card', PokemonCard);

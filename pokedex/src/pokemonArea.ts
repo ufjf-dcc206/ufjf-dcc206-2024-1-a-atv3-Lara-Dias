@@ -1,40 +1,51 @@
-import {getPokemon} from "./pokemonAPI";
+import { getPokemon } from "./pokemonAPI";
 
-class PokemonArea extends HTMLElement {
-    areaVazia:HTMLElement;
+export class PokemonArea extends HTMLElement {
+    areaVaziaA: HTMLElement;
+    areaVaziaB: HTMLElement;
+    jogadorAtual: 'A' | 'B' = 'A';
 
-    constructor(){
+    constructor() {
         super();
-        this.attachShadow({mode:'open'});
+        this.attachShadow({ mode: 'open' });
 
-        this.areaVazia = document.createElement('div');
-        this.areaVazia.classList.add('area-vazia');
-        this.areaVazia.innerText = 'Área de jogo vazia';
-        this.shadowRoot!.appendChild(this.areaVazia);
+        this.areaVaziaA = document.createElement('div');
+        this.areaVaziaA.classList.add('area-vazia');
+        this.areaVaziaA.innerText = 'Área de jogo vazia';
+        
+        this.areaVaziaB = document.createElement('div');
+        this.areaVaziaB.classList.add('area-vazia');
+        this.areaVaziaB.innerText = 'Área de jogo vazia';
+
+        this.shadowRoot!.appendChild(this.areaVaziaA);
+        this.shadowRoot!.appendChild(this.areaVaziaB);
     }
-    async setPokemon(count:number){
+
+    async setPokemon(count: number) {
         const pokemons = await getPokemon(count);
         this.#render(pokemons);
     }
 
-    #render(pokemons: Array<{nome:string; tipo:string, imagem:string}>){
-        this.shadowRoot!.innerHTML=`
-            <style>
+    #render(pokemons: Array<{ nome: string; tipo: string; imagem: string }>) {
+        this.shadowRoot!.innerHTML = `
+        <style>
             .pokemon-area {
                 display: flex;
-                justify-content: space-between;
-                align-items: center;
+                justify-content: center;
+                align-items: flex-start;
                 padding: 10px;
             }
-
+            
             .player-area {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
+                gap: 10px;
+                margin: 0 20px;
             }
 
             .title {
-               font-size: 1.5em;
+                font-size: 1.5em;
                 margin-bottom: 10px;
                 text-align: center;
                 font-family: 'Press Start 2P', cursive;
@@ -45,63 +56,90 @@ class PokemonArea extends HTMLElement {
                 display: flex;
                 flex-wrap: wrap;
                 justify-content: center;
-                gap: 15px;      
+                gap: 15px;
             }
 
-            .pokemon-card {
-                border-radius: 10px;
-                padding:5px;
-                margin-right: 30px;         
-                background-color: #a7a7a74a;
-                box-shadow: #51718a;
+            .area-vazia {
+                width: 150px;
+                height: 200px;
+                border: 2px dashed #ccc;
+                display: flex;
+                justify-content: center;
+                flex-direction: column;
+                align-items: center;
                 text-align: center;
-                cursor: pointer;
-                transition: transform 0.2s, box-shadow 0.2s;
+                padding: 10px;
+                background-color: #f9f9f9; 
+                margin: 0 10px; 
             }
 
-            .pokemon-card img {
-                width: 230px;               
-                height: 230px;             
+            .area-vazia img {
+                max-width: 100%;
+                height: auto;
+                margin-bottom: 10px;
             }
 
-            .pokemon-card .pokemon-nome {
-                font-weight: bold;
-                margin-bottom: 4px;
+            .area-vazia div {
+                font-size: 16px;
+                color: #333;
             }
+        </style>
 
-            .pokemon-card .pokemon-tipo {
-                font-size: 0.9em;
-                color: #666;
-            }
-            </style>
-            <div class="pokemon-area">
-                <div class="title">Pokémons</div>
-                <div class="cards"></div>
-            </div>
-        `;
+        <div class="player-area" id="areaA">
+            <div class="title">Jogador A</div>
+            <div class="cards"></div>
+        </div>
+        <div class="pokemon-area">
+            <div class="area-vazia" id="area-vazia-a">Arena de jogo A</div>
+            <div class="area-vazia" id="area-vazia-b">Arena de jogo B</div>
+        </div>
+        <div class="player-area" id="areaB">
+            <div class="title">Jogador B</div>
+            <div class="cards"></div>
+        </div>
+  
+         
+    `;
 
-        const cardsContainer = this.shadowRoot!.querySelector('.cards')!;
+        const cardsA = this.shadowRoot!.querySelector('#areaA .cards') as HTMLElement;
+        const cardsB = this.shadowRoot!.querySelector('#areaB .cards') as HTMLElement;
+        this.atualizaPokemons(pokemons.slice(0, 5), cardsA, 'A');
+        this.atualizaPokemons(pokemons.slice(5, 10), cardsB, 'B');
+    }
 
-        pokemons.forEach(pokemon=>{
+    atualizaPokemons(pokemons: Array<{ nome: string; tipo: string; imagem: string }>, container: HTMLElement, jogador: 'A' | 'B') {
+        pokemons.forEach(pokemon => {
             const pokemonCard = document.createElement('pokemon-card');
-            pokemonCard.setAttribute('nome',pokemon.nome);
-            pokemonCard.setAttribute('imagem',pokemon.imagem);
-            pokemonCard.setAttribute('tipos',pokemon.tipo);
-
+            pokemonCard.setAttribute('nome', pokemon.nome);
+            pokemonCard.setAttribute('imagem', pokemon.imagem);
+            pokemonCard.setAttribute('tipos', pokemon.tipo);
             pokemonCard.addEventListener('pokemonSelecionado', (event: any) => {
-                console.log('Pokémon selecionado:', event.detail.nome);
-        
-                // Atualiza a área vazia com as informações do Pokémon selecionado
-                this.areaVazia.innerHTML = `
-                  <img src="${event.detail.imagem}" alt="${event.detail.nome}">
-                  <div>Nome: ${event.detail.nome}</div>
-                  <div>Tipo: ${event.detail.tipos}</div>
-                `;
+                console.log('Pokémon selecionado:', event.detail);
+                
+                if ((this.jogadorAtual === 'A' && jogador === 'A') || (this.jogadorAtual === 'B' && jogador === 'B')) {
+                    this.atualizaAreaVazia(event.detail, jogador); 
+                    this.jogadorAtual = this.jogadorAtual === 'A' ? 'B' : 'A';
+                    console.log(`Agora é a vez do Jogador ${this.jogadorAtual}`);
+                } else {
+                    console.log(`Não é a vez do Jogador ${jogador}`);
+                }
             });
-            cardsContainer.appendChild(pokemonCard);
+            container.appendChild(pokemonCard);
         });
-        this.shadowRoot!.appendChild(this.areaVazia);
+    }
+
+    atualizaAreaVazia(pokemon: { nome: string; imagem: string; tipos: string }, jogador: 'A' | 'B') {
+        const areaVazia = jogador === 'A'
+        ? this.shadowRoot!.querySelector('.area-vazia') 
+        : this.shadowRoot!.querySelectorAll('.area-vazia')[1];
+        if(areaVazia){
+            areaVazia.innerHTML = `
+                <div>Nome: ${pokemon.nome}</div>
+                <img src="${pokemon.imagem}" alt="${pokemon.nome}">
+                <div>Tipo: ${pokemon.tipos}</div>
+            `;
+        }
     }
 }
 
-customElements.define('pokemon-area',PokemonArea);
+customElements.define('pokemon-area', PokemonArea);
